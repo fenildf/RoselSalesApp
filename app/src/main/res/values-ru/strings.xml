@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Росэл. Мобильная торговля</string>
+    <string name="No">Нет</string>
+    <string name="Yes">Да</string>
+    <string name="clear">Очистить</string>
+    <string name="client_label">Клиент:</string>
+    <string name="create_order">Создать заказ</string>
+    <string name="db_error">База данных недоступна!</string>
+    <string name="hide">Скрыть</string>
+    <string name="n">№</string>
+    <string name="price_label">Цена</string>
+    <string name="quantity_label">Кол-во</string>
+    <string name="save">сохранить</string>
+    <string name="show">Показывать</string>
+    <string name="show_hidden">Показывать скрытые</string>
+    <string name="total_amount_label">Сумма</string>
+    <string name="new_order_title">Новый заказ</string>
+    <string name="order_clear_accept">Очистить заказ?</string>
+
+    <string-array name="main_activity_navigation_list">
+        <item>Товары</item>
+        <item>Заказы</item>
+        <item>Клиенты</item>
+        <item>Синхронизация</item>
+        <item>Настройки</item>
+    </string-array>
+
+    <string-array name="sync_menu_list">
+        <item>Обновить данные</item>
+        <item>Отправить заказы</item>
+    </string-array>
+
+    <string name="order_save_error">ОШИБКА, заказ не сохранен</string>
+    <string name="order_saved">Заказ сохранен</string>
+    <string name="product_label">Товар</string>
+    <string name="add_order_line">Добавить строку?</string>
+    <string name="total_sum">Всего:</string>
+    <string name="orderfromdate">" от "</string>
+    <string name="check_order_error">Проверьте заказ</string>
+    <string name="price">Цена:</string>
+    <string name="quantity">Кол-во:</string>
+    <string name="edit_this_row">Редкатировать строку?</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Редактировать</string>
+    <string name="order_deleted">Заказ удален</string>
+    <string name="order_delete_error">ОШИБКА, заказ не удален</string>
+
+    <string name="pref_category_info_title">Информация</string>
+    <string name="pref_category_server_title">Сервер</string>
+    <string name="pref_information_title">Информация</string>
+    <string name="pref_server_port_title">Порт</string>
+    <string name="pref_server_address_title">Адрес</string>
+    <string name="pref_server_timeout_title">Таймаут</string>
+    <string name="database">База данных</string>
+    <string name="database_settings">Настройки базы данных</string>
+    <string name="clear_all_tables">Очистить все таблицы</string>
+    <string name="search">Поиск</string>
+    <string name="toast_clear_all_data">Все данные были удалены</string>
+    <string name="updates_loaded">Обновления загружены</string>
+    <string name="connection_error">Ошибка подключения</string>
+    <string name="cant_use_network">Нельзя пользоваться сетью</string>
+    <string name="update_db_error">Ошибка при обновлении БД</string>
+    <string name="update_dialog_title">Обновление...</string>
+    <string name="orders_sent">Заказы отправлены</string>
+    <string name="select_client_first">Выберите контрагента!</string>
+    <string name="in_stock_label">остаток</string>
+    <string name="not_enough_in_stock">Не хватает товара на остатке!</string>
+    <string name="main">Главная</string>
+    <string name="order_change_client_dialog_message">При смене контрагента заказ будет очищен, Вы уверены?</string>
+    <string name="code_label">Артикул:</string>
+    <string name="add_comment">Комментарий</string>
+    <string name="comment">Комментарий:</string>
+    <string name="address">Адрес:</string>
+    <string name="choose_address">выбрать адрес</string>
+    <string name="Choose_address">Выберите адрес</string>
+    <string name="delivery_addresses">Адреса доставки:</string>
+    <string name="device_not_reg_on_server">Устройство не зарегистрировано на сервере</string>
+    <string name="complete_picking">Завершить подбор</string>
+    <string name="pick">Подбор</string>
+    <string name="delete_this_row">Удалить строку?</string>
+    <string name="ship_date">Дата доставки:</string>
+    <string name="choose_date">выбрать дату</string>
+
+</resources>

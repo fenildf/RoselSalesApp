@@ -1,0 +1,94 @@
+<resources>
+
+    <string name="product_label">Product</string>
+    <string name="quantity_label">Qty</string>
+    <string name="price_label">Price</string>
+    <string name="total_amount_label">Total amount</string>
+
+    <string name="app_name">Rosel Sales</string>
+
+    <string-array name="main_activity_navigation_list">
+        <item>Products</item>
+        <item>Orders</item>
+        <item>Clients</item>
+        <item>Synchronization</item>
+        <item>Settings</item>
+    </string-array>
+
+    <string-array name="sync_menu_list">
+        <item>Update data</item>
+        <item>Send orders</item>
+    </string-array>
+
+    <string name="pref_host">10.0.2.2</string>
+    <string name="show_hidden">Show hidden</string>
+    <string name="show">Show</string>
+    <string name="hide">Hide</string>
+    <string name="db_error">Database unavailable!</string>
+    <string name="create_order">Create order</string>
+    <string name="clear">clear</string>
+    <string name="save">save</string>
+    <string name="No">No</string>
+    <string name="Yes">Yes</string>
+    <string name="n">№</string>
+    <string name="client_label">Client:</string>
+    <string name="new_order_title">New Order</string>
+    <string name="order_clear_accept">You sure want to clear?</string>
+    <string name="order_saved">Order saved</string>
+    <string name="order_save_error">ERROR, order not saved</string>
+    <string name="order_delete_error">ERROR, order not deleted</string>
+    <string name="add_order_line">Add order line?</string>
+    <string name="total_sum">Total sum:</string>
+    <string name="orderfromdate">" from "</string>
+    <string name="check_order_error">CHECK ORDER PLEASE</string>
+    <string name="price">Price:</string>
+    <string name="quantity">Quantity:</string>
+    <string name="edit_this_row">Edit this row?</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="order_deleted">Order deleted</string>
+    <string name="pref_server_address_key" translatable="false">server_address</string>
+    <string name="pref_server_port_key" translatable="false">server_port</string>
+    <string name="pref_server_address_title">Server address</string>
+    <string name="pref_server_port_title">Server port</string>
+    <string name="pref_category_server_title">Server</string>
+    <string name="pref_information_title">Information</string>
+    <string name="pref_category_info_title">Info</string>
+    <string name="pref_server_timeout_title">Timeout</string>
+    <string name="pref_server_timeout_key" translatable="false">server_timeout</string>
+    <string name="search">Search</string>
+    <string name="toast_clear_all_data">All data was deleted</string>
+    <string name="database">Database</string>
+    <string name="database_settings">Database settings</string>
+    <string name="clear_all_tables">Clear all tables</string>
+    <string name="update_log" translatable="false">UPDATE</string>
+    <string name="socket_log" translatable="false">SOCKET</string>
+    <string name="updates_loaded">Updates loaded</string>
+    <string name="connection_error">Connection error</string>
+    <string name="cant_use_network">You can\'t use network</string>
+    <string name="update_db_error">Error while updating DB</string>
+    <string name="update_dialog_title">Updating…</string>
+    <string name="orders_sent">Orders send</string>
+    <string name="log_tag_send_orders" translatable="false">SEND_ORDERS</string>
+    <string name="select_client_first">Select client first!</string>
+    <string name="in_stock_label">in stock</string>
+    <string name="not_enough_in_stock">Not enough in stock</string>
+    <string name="drawer_open" translatable="false">Drawer open</string>
+    <string name="drawer_close" translatable="false">Drawer close</string>
+    <string name="main">Main</string>
+    <string name="order_change_client_dialog_message">All lines will remove, are you sure to change client?</string>
+    <string name="code_label">Code:</string>
+    <string name="add_comment">add comment</string>
+    <string name="comment">Comment:</string>
+    <string name="address">Address:</string>
+    <string name="choose_address">choose address</string>
+    <string name="Choose_address">Choose address</string>
+    <string name="delivery_addresses">Delivery addresses:</string>
+    <string name="device_not_reg_on_server">Device not registered on server!</string>
+    <string name="complete_picking">Complete picking</string>
+    <string name="pick">Pick</string>
+    <string name="ship_date">Ship date:</string>
+    <string name="delete_this_row">Delete this row?</string>
+    <string name="choose_date">choose date</string>
+
+</resources>
