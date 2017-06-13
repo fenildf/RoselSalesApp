@@ -284,7 +284,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         Socket socket = null;
         MobileDbItemFactory factory = new MobileDbItemFactory();
         SQLiteDatabase db=null;
-        ArrayList<String> updatesList = new ArrayList<>();
         PrintWriter writer;
         BufferedReader reader;
 
@@ -334,72 +333,36 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     }
                     writer = new PrintWriter(socket.getOutputStream());
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    //expecting get device id request from server
-                    String serverRequest = reader.readLine();
-                    if(serverRequest==null || !serverRequest.equals(ExchangeProtocol.DEVICE_ID_REQUEST)){
-                        return RESULT_CODE_SYNC_ERROR;
-                    }
 
-                    mPublishProgress(10);
-
+                    //build transport message
+                    TransportMessage request = new TransportMessage();
                     //send uid
-                    writer.println(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
+                    request.setDevice_id(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
+                    request.setIntention(TransportMessage.GET);
+                    writer.println(request.toString());
                     writer.flush();
 
-                    mPublishProgress(20);
-
-                    //expect confirmation for this device from server
-                    serverRequest = reader.readLine();
-                    if(serverRequest!=null)
-                    switch(serverRequest){
-                        case ExchangeProtocol.DEVICE_CONFIRMATION:
-                            break;
-                        case ExchangeProtocol.DEVICE_REJECTION:
-                            return RESULT_CODE_SERVER_REJECT_DEVICE;
-                        default:
-                            return RESULT_CODE_SYNC_ERROR;
-                    }
-
-                    mPublishProgress(25);
-
-                    //expect intention request
-                    serverRequest = reader.readLine();
-                    if(serverRequest==null || !serverRequest.equals(ExchangeProtocol.INTENTION_REQUEST)){
+                    String responseFromServer = reader.readLine();
+                    if(responseFromServer == null) {
                         return RESULT_CODE_SYNC_ERROR;
                     }
 
-                    mPublishProgress(30);
-
-                    //send intention
-                    // (UPDATE) or (INIT)
-                    try {
-                        writer.println(getUpdateIntention());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return RESULT_CODE_SYNC_ERROR;
+                    TransportMessage response = TransportMessage.fromString(responseFromServer);
+                    if(response.getIntention() == TransportMessage.NOT_REG){
+                        return RESULT_CODE_SERVER_REJECT_DEVICE;
                     }
-                    writer.flush();
-
-                    //and get ready for incoming JSON strings
-                    String line;
-                    while((line = reader.readLine())!=null && !line.equals(ExchangeProtocol.CONFIRMATION_REQUEST)){
-                         //in line we have JSON
-                        updatesList.add(line);
-                    }
-
-                    if(line == null || !line.equals(ExchangeProtocol.CONFIRMATION_REQUEST)){
-                        return RESULT_CODE_SYNC_ERROR;
-                    }
-
-                    mPublishProgress(50);
 
                     //write updates to mobile DB
+                    int updateSize = response.getBody().size();
+                    int i = 0;
                     try {
                         RoselDatabaseHelper helper = new RoselDatabaseHelper(SyncActivity.this);
                         db = helper.getWritableDatabase();
                         db.beginTransaction();
-                        for(String updateString:updatesList){
+                        for(String updateString:response.getBody()){
                             handleUpdateString(updateString);
+                            i++;
+                            mPublishProgress(Math.round(i*100/updateSize));
                         }
                         db.setTransactionSuccessful();
                     } catch (Exception e) {
@@ -411,16 +374,35 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                         }
                     }
 
-                    mPublishProgress(90);
-
                     //confirm update success
                     writer.println(ExchangeProtocol.OK_RESPONSE);
-                    writer.flush();
-                    writer.close();
-                } catch (IOException e) {
+
+                } catch (IOException | TransportMessageException e) {
                     Log.e(getString(R.string.update_log), e.getMessage());
                     return RESULT_CODE_SYNC_ERROR;
+                } finally{
+                    if(writer!=null) {
+                        writer.close();
+                    }
+                    if(reader!=null){
+                        try {
+                            reader.close();
+                        } catch (IOException ignore) {
+                        }
+                    }
+                    if(db!=null){
+                        db.close();
+                        db = null;
+                    }
+                    if(socket!=null){
+                        try {
+                            socket.close();
+                            socket = null;
+                        } catch (IOException ignore) {
+                        }
+                    }
                 }
+
             } else {
                 return RESULT_CODE_NO_NETWORK;
             }
@@ -431,11 +413,11 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         }
 
         void mPublishProgress(int progressToPublish){
-            try {
+            /*try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }*/
             publishProgress(progressToPublish);
         }
 
@@ -457,16 +439,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 case RESULT_CODE_SERVER_REJECT_DEVICE:
                     Toast.makeText(SyncActivity.this, R.string.device_not_reg_on_server, Toast.LENGTH_SHORT).show();
                     break;
-            }
-            if(db!=null){
-                db.close();
-            }
-            if(socket!=null){
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
 
             menuListView.setVisibility(View.VISIBLE);
@@ -495,7 +467,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                         db.update(dbItem.table_name,,,,);
                         break;
                 }*/
-                db.insertWithOnConflict(dbItem.table_name, null,createContentValues(dbItem),SQLiteDatabase.CONFLICT_REPLACE);
+                db.insertWithOnConflict(dbItem.table_name, null, createContentValues(dbItem), SQLiteDatabase.CONFLICT_REPLACE);
             }
         }
 
@@ -523,24 +495,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             return contentValues;
         }
 
-        String getUpdateIntention() throws Exception {
-            RoselDatabaseHelper helper = new RoselDatabaseHelper(SyncActivity.this);
-            db = helper.getWritableDatabase();
-            String checkClearQuery = "SELECT " +
-                    DbContract.Clients.TABLE_NAME + "." + DbContract.Clients._ID +
-                    " FROM " + DbContract.Clients.TABLE_NAME +
-                    " UNION " +
-                    " SELECT " +
-                    DbContract.Products.TABLE_NAME + "." + DbContract.Products._ID +
-                    " FROM " + DbContract.Products.TABLE_NAME +
-                    " LIMIT 1";
-            Cursor cursor = db.rawQuery(checkClearQuery, null);
-            if(cursor.moveToFirst()){
-                return ExchangeProtocol.ClientIntention.GET_UPDATES_STRING;
-            } else {
-                return ExchangeProtocol.ClientIntention.INIT_STRING;
-            }
-        }
     }
 
     @Override
