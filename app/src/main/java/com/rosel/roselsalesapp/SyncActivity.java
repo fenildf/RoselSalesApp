@@ -20,6 +20,7 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -336,19 +337,21 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
 
                     //build transport message
                     TransportMessage request = new TransportMessage();
-                    //send uid
                     request.setDevice_id(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
                     request.setIntention(TransportMessage.GET);
+
                     writer.println(request.toString());
                     writer.flush();
 
-                    String responseFromServer = reader.readLine();
-                    if(responseFromServer == null) {
-                        return RESULT_CODE_SYNC_ERROR;
+                    String line;// = reader.readLine();
+                    StringBuilder stringBuilder = new StringBuilder();
+                    while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
+                        stringBuilder.append(line).append('\n');
                     }
+                    String responseFromServer = stringBuilder.toString();
 
                     TransportMessage response = TransportMessage.fromString(responseFromServer);
-                    if(response.getIntention() == TransportMessage.NOT_REG){
+                    if(response.getIntention().equals(TransportMessage.NOT_REG)){
                         return RESULT_CODE_SERVER_REJECT_DEVICE;
                     }
 
@@ -373,10 +376,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                             db.endTransaction();
                         }
                     }
-
-                    //confirm update success
-                    writer.println(ExchangeProtocol.OK_RESPONSE);
-
                 } catch (IOException | TransportMessageException e) {
                     Log.e(getString(R.string.update_log), e.getMessage());
                     return RESULT_CODE_SYNC_ERROR;
@@ -406,8 +405,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             } else {
                 return RESULT_CODE_NO_NETWORK;
             }
-
-            mPublishProgress(100);
 
             return RESULT_CODE_SUCCESS;
         }

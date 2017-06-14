@@ -3,9 +3,12 @@ package com.rosel.roselsalesapp;
 /**
  * Created by nikiforovnikita on 13.06.2017.
  */
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class TransportMessage {
+public class TransportMessage implements Serializable {
+
+    public static final String END = "@";
 
     //ids
     public static final String SERVER_ID = "ROSEL.SERVER";
@@ -47,6 +50,7 @@ public class TransportMessage {
                 str.append(curString).append("\n");
             }
         }
+        str.append(TransportMessage.END);
         return str.toString();
     }
 
