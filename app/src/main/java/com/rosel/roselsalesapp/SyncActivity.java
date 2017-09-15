@@ -69,7 +69,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
 
         Socket socket = null;
         //MobileDbItemFactory factory = new MobileDbItemFactory();
-        ArrayList<Order> ordersToSend = new ArrayList<>();
+        //ArrayList<Order> ordersToSend = new ArrayList<>();
         SQLiteDatabase db = null;
         Cursor cursor = null;
         BufferedReader reader;
@@ -116,79 +116,61 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     writer = new PrintWriter(socket.getOutputStream());
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                    mPublishProgress(5);
+                    TransportMessage request = new TransportMessage();
+                    request.setDevice_id(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
+                    request.setIntention(TransportMessage.POST);
 
-                    //expecting get device id request from server
-                    String serverRequest = reader.readLine();
-                    if(!serverRequest.equals(ExchangeProtocol.DEVICE_ID_REQUEST)){
-                        return RESULT_CODE_SYNC_ERROR;
+                    RoselDatabaseHelper dbHelper = new RoselDatabaseHelper(SyncActivity.this);
+                    db = dbHelper.getReadableDatabase();
+                    for(Order curOrder:getOrdersUpdates()){
+                        request.getBody().add(curOrder.toJSONObject().toJSONString());
                     }
-                    //send uid
-                    writer.println(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
+
+                    writer.println(request.toString());
                     writer.flush();
-
-                    mPublishProgress(20);
-
-                    //expect confirmation for this device from server
-                    serverRequest = reader.readLine();
-                    switch(serverRequest){
-                        case ExchangeProtocol.DEVICE_CONFIRMATION:
-                            break;
-                        case ExchangeProtocol.DEVICE_REJECTION:
-                            return RESULT_CODE_SERVER_REJECT_DEVICE;
-                        default:
-                            return RESULT_CODE_SYNC_ERROR;
-                    }
-
-                    mPublishProgress(25);
-
-                    //expect intention request
-                    serverRequest = reader.readLine();
-                    if(!serverRequest.equals(ExchangeProtocol.INTENTION_REQUEST)){
-                        return RESULT_CODE_SYNC_ERROR;
-                    }
-                    mPublishProgress(30);
-
-                    //send intention
-                    writer.println(ExchangeProtocol.ClientIntention.SEND_ORDERS_STRING);
-                    writer.flush();
-                    //and then send orders
-                    sendOrdersToServer();
-
-                    mPublishProgress(80);
 
                     //confirm send success
-                    String serverResponse = reader.readLine();
-                    if(serverResponse==null || !serverResponse.equals(ExchangeProtocol.OK_RESPONSE)){
-                        Log.e(getString(R.string.log_tag_send_orders), "Response missed");
+                    String line;
+                    StringBuilder stringBuilder = new StringBuilder();
+                    while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
+                        stringBuilder.append(line).append('\n');
+                    }
+                    String serverRespone = stringBuilder.toString();
+                    TransportMessage response = TransportMessage.fromString(serverRespone);
+                    if(response.getIntention().equals(TransportMessage.NOT_REG)){
+                        return RESULT_CODE_SERVER_REJECT_DEVICE;
+                    }
+                    if(!response.getIntention().equals(TransportMessage.POST_COMMIT)){
                         return RESULT_CODE_SYNC_ERROR;
                     }
+                    mPublishProgress(100);
+                    db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
                 } catch (Exception e) {
                     Log.e(getString(R.string.log_tag_send_orders), e.getMessage());
                     return RESULT_CODE_SYNC_ERROR;
+                } finally{
+                    if(writer!=null){
+                        writer.close();
+                    }
+                    if(cursor!=null){
+                        cursor.close();
+                    }
+                    if(db!=null){
+                        db.close();
+                    }
+                    if(socket!=null){
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             } else {
                 return RESULT_CODE_NO_NETWORK;
             }
-
-            mPublishProgress(100);
-
-            writer.close();
-            db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
-
+//            db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
             return RESULT_CODE_SUCCESS;
-        }
-
-        private void sendOrdersToServer() throws Exception {
-            RoselDatabaseHelper dbHelper = new RoselDatabaseHelper(SyncActivity.this);
-            db = dbHelper.getReadableDatabase();
-            ordersToSend.addAll(getOrdersUpdates());
-            for(Order curOrder:ordersToSend){
-                writer.println(curOrder.toJSONObject().toJSONString());
-                writer.flush();
-            }
-            writer.println(ExchangeProtocol.CONFIRMATION_REQUEST);
-            writer.flush();
         }
 
         public ArrayList<Order> getOrdersUpdates() {
@@ -196,6 +178,8 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             String queryTxt = "SELECT T1.action AS action, T2.* FROM UPDATES AS T1 INNER JOIN ORDERS AS T2 ON T1.item_id = T2._id AND T1.table_name = 'ORDERS'";
             Cursor cursor  = db.rawQuery(queryTxt, null);
             Cursor tempCursor;
+            int sendSize = cursor.getCount();
+            int i=0;
             while(cursor.moveToNext()){
                 Order order = new Order();
                 order.setOrderId(cursor.getLong(cursor.getColumnIndex(DbContract.Orders._ID)));
@@ -221,16 +205,13 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 }
                 tempCursor.close();
                 ordersList.add(order);
+                i++;
+                mPublishProgress(Math.round(i*75/sendSize));
             }
             return ordersList;
         }
 
         void mPublishProgress(int progressToPublish){
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             publishProgress(progressToPublish);
         }
 
@@ -249,19 +230,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     Toast.makeText(SyncActivity.this, R.string.device_not_reg_on_server, Toast.LENGTH_SHORT).show();
                     break;
             }
-            if(cursor!=null){
-                cursor.close();
-            }
-            if(db!=null){
-                db.close();
-            }
-            if(socket!=null){
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+
             menuListView.setVisibility(View.VISIBLE);
             switch (progressMode){
                 case 0:
@@ -325,13 +294,8 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 try {
                     socket = new Socket();
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SyncActivity.this);
-                    String serverAddressString = prefs.getString(getString(R.string.pref_server_address_key),null);
-                    String serverPortString = prefs.getString(getString(R.string.pref_server_port_key),null);
-                    if(serverAddressString!=null&&serverPortString!=null) {
-                        socket.connect(new InetSocketAddress(serverAddressString, Integer.parseInt(serverPortString)), Integer.parseInt(prefs.getString(getString(R.string.pref_server_timeout_key), "3000")));
-                    } else{
-                        return RESULT_CODE_SYNC_ERROR;
-                    }
+                    socket.connect(new InetSocketAddress(prefs.getString(getString(R.string.pref_server_address_key),null), Integer.parseInt(prefs.getString(getString(R.string.pref_server_port_key),null))), Integer.parseInt(prefs.getString(getString(R.string.pref_server_timeout_key), "3000")));
+
                     writer = new PrintWriter(socket.getOutputStream());
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
@@ -410,11 +374,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         }
 
         void mPublishProgress(int progressToPublish){
-            /*try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }*/
             publishProgress(progressToPublish);
         }
 
