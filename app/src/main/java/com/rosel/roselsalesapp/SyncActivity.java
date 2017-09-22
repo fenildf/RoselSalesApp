@@ -20,7 +20,6 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -68,8 +67,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         private static final int RESULT_CODE_SERVER_REJECT_DEVICE = 4;
 
         Socket socket = null;
-        //MobileDbItemFactory factory = new MobileDbItemFactory();
-        //ArrayList<Order> ordersToSend = new ArrayList<>();
         SQLiteDatabase db = null;
         Cursor cursor = null;
         BufferedReader reader;
@@ -169,7 +166,6 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             } else {
                 return RESULT_CODE_NO_NETWORK;
             }
-//            db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
             return RESULT_CODE_SUCCESS;
         }
 
@@ -252,7 +248,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         private static final int RESULT_CODE_SERVER_REJECT_DEVICE = 4;
 
         Socket socket = null;
-        MobileDbItemFactory factory = new MobileDbItemFactory();
+        UpdateStructureFactory factory = new MobileUpdateStructureFactory(new MobileUpdateItemFactory());
         SQLiteDatabase db=null;
         PrintWriter writer;
         BufferedReader reader;
@@ -304,6 +300,12 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     request.setDevice_id(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
                     request.setIntention(TransportMessage.GET);
 
+                    //
+                    RoselDatabaseHelper helper = new RoselDatabaseHelper(SyncActivity.this);
+                    db = helper.getWritableDatabase();
+                    request.setBody(getRequestUpdateStructure());
+
+                    //
                     writer.println(request.toString());
                     writer.flush();
 
@@ -320,16 +322,23 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     }
 
                     //write updates to mobile DB
-                    int updateSize = response.getBody().size();
+                    ArrayList<RoselUpdateStructure> updateStructures = new ArrayList<>();
+                    int updateSize = 0;
                     int i = 0;
+                    for(String updateString:response.getBody()){
+                        updateStructures.add(factory.fillFromJSONString(updateString));
+                        updateSize += updateStructures.get(updateStructures.size()-1).getUpdateItems().size();
+                    }
                     try {
-                        RoselDatabaseHelper helper = new RoselDatabaseHelper(SyncActivity.this);
-                        db = helper.getWritableDatabase();
                         db.beginTransaction();
-                        for(String updateString:response.getBody()){
-                            handleUpdateString(updateString);
-                            i++;
-                            mPublishProgress(Math.round(i*100/updateSize));
+                        for(RoselUpdateStructure roselUpdateStructure:updateStructures){
+                            for(RoselUpdateItem updateItem : roselUpdateStructure.getUpdateItems()){
+                                db.insertWithOnConflict(roselUpdateStructure.getTableName(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
+                                mPublishProgress(Math.round(i++*100/updateSize));
+                            }
+                            ContentValues newTableVersionContentValues = new ContentValues();
+                            newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, roselUpdateStructure.getUpdateVersion());
+                            db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{roselUpdateStructure.getTableName()});
                         }
                         db.setTransactionSuccessful();
                     } catch (Exception e) {
@@ -340,7 +349,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                             db.endTransaction();
                         }
                     }
-                } catch (IOException | TransportMessageException e) {
+                } catch (Exception e) {
                     Log.e(getString(R.string.update_log), e.getMessage());
                     return RESULT_CODE_SYNC_ERROR;
                 } finally{
@@ -409,28 +418,23 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         }
 
-        void handleUpdateString(String updateString){
-            DbItem dbItem = factory.fillFromJSONString(updateString);
-            if(dbItem!=null){
-                //TODO create action handle algorithm
-                /*switch (dbItem.action){
-                    case DbItem.ACTION_NEW:
-                        //insert new row in DB
-                        db.insert(dbItem.table_name, null,createContentValues(dbItem));
-                        break;
-                    case DbItem.ACTION_UPDATE:
-                        //update row in DB
-                        db.update(dbItem.table_name,,,,);
-                        break;
-                }*/
-                db.insertWithOnConflict(dbItem.table_name, null, createContentValues(dbItem), SQLiteDatabase.CONFLICT_REPLACE);
+        ArrayList<String> getRequestUpdateStructure(){
+            ArrayList<String> res = new ArrayList<>();
+            RoselUpdateStructure updateStructure;
+            Cursor updcursor = db.query(DbContract.Versions.TABLE_NAME, new String[]{DbContract.Versions.COLUMN_NAME_TABLE_NAME, DbContract.Versions.COLUMN_NAME_VERSION},null, null, null, null, null);
+            while(updcursor.moveToNext()){
+                updateStructure = new RoselUpdateStructure(updcursor.getString(updcursor.getColumnIndex(DbContract.Versions.COLUMN_NAME_TABLE_NAME)));
+                updateStructure.setUpdateVersion(updcursor.getLong(updcursor.getColumnIndex(DbContract.Versions.COLUMN_NAME_VERSION)));
+                res.add(updateStructure.toJSONObject().toJSONString());
             }
+            updcursor.close();
+            return res;
         }
 
-        ContentValues createContentValues(DbItem dbItem){
+        ContentValues createContentValues(RoselUpdateItem roselUpdateItem){
             ContentValues contentValues = new ContentValues();
-            contentValues.put("_id", dbItem.id);
-            for(DbItem.ItemValue iv:dbItem.item_values){
+            contentValues.put("_id", roselUpdateItem.id);
+            for(RoselUpdateItem.ItemValue iv: roselUpdateItem.item_values){
                 if(!iv.value.equals("null")) {
                     switch (iv.type) {
                         case "INTEGER":

@@ -15,10 +15,8 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TableLayout;
@@ -26,14 +24,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class OrderDetailsActivity extends ActionBarActivity implements DatePickerDialog.OnDateSetListener{
 
@@ -92,7 +86,7 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
                     contentValues = new ContentValues();
                     contentValues.put(Updates.COLUMN_NAME_ITEM_ID, orderId);
                     contentValues.put(Updates.COLUMN_NAME_TABLE_NAME, Orders.TABLE_NAME);
-                    contentValues.put(Updates.COLUMN_NAME_ACTION, DbItem.ACTION_NEW);
+                    contentValues.put(Updates.COLUMN_NAME_ACTION, RoselUpdateItem.ACTION_NEW);
                     contentValues.put(Updates.COLUMN_NAME_VERSION, 0);
                     db.insert(Updates.TABLE_NAME, null, contentValues);
 
@@ -111,7 +105,7 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
                         contentValues = new ContentValues();
                         contentValues.put(Updates.COLUMN_NAME_ITEM_ID, orderLineId);
                         contentValues.put(Updates.COLUMN_NAME_TABLE_NAME, Orderlines.TABLE_NAME);
-                        contentValues.put(Updates.COLUMN_NAME_ACTION, DbItem.ACTION_NEW);
+                        contentValues.put(Updates.COLUMN_NAME_ACTION, RoselUpdateItem.ACTION_NEW);
                         contentValues.put(Updates.COLUMN_NAME_VERSION, 0);
                         db.insert(Updates.TABLE_NAME, null, contentValues);
                     }

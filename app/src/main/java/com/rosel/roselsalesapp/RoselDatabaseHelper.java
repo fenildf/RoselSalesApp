@@ -12,7 +12,7 @@ public class RoselDatabaseHelper extends SQLiteOpenHelper {
 
     private Context curContext;
     private static final String DB_NAME = "Rosel";
-    private static final int DB_VERSION = 5;
+    private static final int DB_VERSION = 1;
 
     RoselDatabaseHelper(Context context) throws Exception{
         super(context, DB_NAME, null, DB_VERSION);
@@ -22,81 +22,15 @@ public class RoselDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         createTables(db);
+        initTables(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if(oldVersion==1){
-            if(newVersion==2){
-                upgrade_v2(db);
-            }
-            if(newVersion==3){
-                upgrade_v2(db);
-                upgrade_v3(db);
-            }
-            if(newVersion==4){
-                upgrade_v2(db);
-                upgrade_v3(db);
-                upgrade_v4(db);
-            }
-            if(newVersion==5){
-                upgrade_v2(db);
-                upgrade_v3(db);
-                upgrade_v4(db);
-                upgrade_v5(db);
-            }
-        }
-        if(oldVersion==2) {
-            if(newVersion==3){
-                upgrade_v3(db);
-            }
-            if(newVersion==4){
-                upgrade_v3(db);
-                upgrade_v4(db);
-            }
-            if(newVersion==5){
-                upgrade_v3(db);
-                upgrade_v4(db);
-                upgrade_v5(db);
-            }
-        }
-        if(oldVersion==3) {
-            if(newVersion==4){
-                upgrade_v4(db);
-            }
-            if(newVersion==5){
-                upgrade_v4(db);
-                upgrade_v5(db);
-            }
-        }
+
     }
 
-    private static void upgrade_v2(SQLiteDatabase db){
-        String updateString = "ALTER TABLE " + DbContract.Orders.TABLE_NAME +
-                " ADD " + DbContract.Orders.COLUMN_NAME_COMMENT + " TEXT";
-        db.execSQL(updateString);
-    }
-
-    public static void upgrade_v3(SQLiteDatabase db) {
-        db.execSQL(DbContract.Addresses.SQL_CREATE_STATEMENT);
-        String updateString = "ALTER TABLE " + DbContract.Orders.TABLE_NAME +
-                " ADD " + DbContract.Orders.COLUMN_NAME_ADDRESS_ID + " INTEGER";
-        db.execSQL(updateString);
-    }
-
-    public static void upgrade_v4(SQLiteDatabase db) {
-        String updateString = "ALTER TABLE " + DbContract.Orders.TABLE_NAME +
-                " ADD " + DbContract.Orders.COLUMN_NAME_SHIPPING_DATE + " TEXT";
-        db.execSQL(updateString);
-    }
-
-    public static void upgrade_v5(SQLiteDatabase db) {
-        String updateString = "ALTER TABLE " + DbContract.Clients.TABLE_NAME +
-                " ADD " + DbContract.Clients.COLUMN_NAME_MANAGER_ID + " INTEGER";
-        db.execSQL(updateString);
-    }
-
-    private void createTables(SQLiteDatabase db){
+    private void createTables(SQLiteDatabase db) {
         db.execSQL(DbContract.Products.SQL_CREATE_STATEMENT);
         db.execSQL(DbContract.Clients.SQL_CREATE_STATEMENT);
         db.execSQL(DbContract.Prices.SQL_CREATE_STATEMENT);
@@ -105,6 +39,16 @@ public class RoselDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DbContract.Orders.SQL_CREATE_STATEMENT);
         db.execSQL(DbContract.Orderlines.SQL_CREATE_STATEMENT);
         db.execSQL(DbContract.Updates.SQL_CREATE_STATEMENT);
+        db.execSQL(DbContract.Versions.SQL_CREATE_STATEMENT);
+    }
+
+    private void initTables(SQLiteDatabase db){
+        //fill VERSIONS
+        db.execSQL(DbContract.Versions.getInsertQuery(DbContract.Clients.TABLE_NAME, 0));
+        db.execSQL(DbContract.Versions.getInsertQuery(DbContract.Products.TABLE_NAME, 0));
+        db.execSQL(DbContract.Versions.getInsertQuery(DbContract.Addresses.TABLE_NAME, 0));
+        db.execSQL(DbContract.Versions.getInsertQuery(DbContract.Prices.TABLE_NAME, 0));
+        db.execSQL(DbContract.Versions.getInsertQuery(DbContract.Stock.TABLE_NAME, 0));
     }
 
     public void clearTables(){
@@ -115,7 +59,8 @@ public class RoselDatabaseHelper extends SQLiteOpenHelper {
                 DbContract.Stock.TABLE_NAME,
                 DbContract.Clients.TABLE_NAME,
                 DbContract.Products.TABLE_NAME,
-                DbContract.Addresses.TABLE_NAME);
+                DbContract.Addresses.TABLE_NAME,
+                DbContract.Versions.TABLE_NAME);
     }
 
     private class ClearTableAsyncTask extends AsyncTask<String, Void, Boolean>{

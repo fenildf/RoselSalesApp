@@ -6,11 +6,6 @@ public final class DbContract {
 
     public DbContract(){}
 
-    public static String[] getTables(){
-        return new String[]{Products.TABLE_NAME, Orders.TABLE_NAME, Orderlines.TABLE_NAME, Clients.TABLE_NAME, Prices.TABLE_NAME,
-            Stock.TABLE_NAME, Updates.TABLE_NAME};
-    }
-
     public static abstract class Products implements BaseColumns{
         public static final String TABLE_NAME = "PRODUCTS";
         public static final String COLUMN_NAME_PRODUCT_ID = "rosel_id";
@@ -125,6 +120,18 @@ public final class DbContract {
                 COLUMN_NAME_ACTION + " INTEGER, " +
                 COLUMN_NAME_VERSION + " INTEGER, " +
                 "UNIQUE (" + COLUMN_NAME_ITEM_ID + ", " + COLUMN_NAME_TABLE_NAME + ", " + COLUMN_NAME_VERSION + "));";
+    }
+
+    public static abstract class Versions {
+        public static final String TABLE_NAME = "VERSIONS";
+        public static final String COLUMN_NAME_TABLE_NAME = "table_name";
+        public static final String COLUMN_NAME_VERSION = "version";
+        public static final String SQL_CREATE_STATEMENT = "CREATE TABLE " + TABLE_NAME +
+                " (" + COLUMN_NAME_TABLE_NAME + " TEXT NOT NULL PRIMARY KEY, " +
+                COLUMN_NAME_VERSION + " INTEGER);";
+        public static final String getInsertQuery(String tableName, long version){
+            return "INSERT INTO " + TABLE_NAME + " (" + COLUMN_NAME_TABLE_NAME + ", " + COLUMN_NAME_VERSION + ") VALUES ( '" + tableName + "', " + version + " )";
+        }
     }
 
 }

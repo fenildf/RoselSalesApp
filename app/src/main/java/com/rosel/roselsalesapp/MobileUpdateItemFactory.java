@@ -7,16 +7,15 @@ import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public class MobileDbItemFactory extends DbItemFactory {
+public class MobileUpdateItemFactory implements UpdateItemFactory {
 
     @Override
-    public DbItem fillFromJSONString(String jsonString) {
-        DbItem dbItem = new DbItem();
+    public RoselUpdateItem fillFromJSONString(String jsonString) {
+        RoselUpdateItem roselUpdateItem = new RoselUpdateItem();
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
-            dbItem.id = jsonObject.getLong("id");
-            dbItem.table_name = jsonObject.getString("table_name");
-            dbItem.action = jsonObject.getInt("action");
+            roselUpdateItem.id = jsonObject.getLong("id");
+            roselUpdateItem.action = jsonObject.getInt("action");
             JSONArray jsonValues = jsonObject.getJSONArray("item_values");
             int len = jsonValues.length();
             for(int i=0;i<len;i++){
@@ -24,20 +23,19 @@ public class MobileDbItemFactory extends DbItemFactory {
                 String valueName = jsonValue.getString("name");
                 String valueType = jsonValue.getString("type");
                 String value = jsonValue.getString("value");
-                dbItem.addItemValue(valueName, valueType, value);
+                roselUpdateItem.addItemValue(valueName, valueType, value);
             }
         } catch(Exception e){
             Log.e("JSON", e.getMessage());
             return null;
         }
-        return dbItem;
+        return roselUpdateItem;
     }
 
-    public DbItem fillFromCursor(Cursor cursor, String tableName) throws SQLException {
-        DbItem dbItem = new DbItem();
-        dbItem.id = cursor.getLong(cursor.getColumnIndex("_id"));
-        dbItem.table_name = tableName;
-        dbItem.action = cursor.getInt(cursor.getColumnIndex("action"));
+    public RoselUpdateItem fillFromCursor(Cursor cursor, String tableName) throws SQLException {
+        RoselUpdateItem roselUpdateItem = new RoselUpdateItem();
+        roselUpdateItem.id = cursor.getLong(cursor.getColumnIndex("_id"));
+        roselUpdateItem.action = cursor.getInt(cursor.getColumnIndex("action"));
 
         int columnsCount = cursor.getColumnCount();
         for (int i = 2; i < columnsCount; i++) {
@@ -45,9 +43,9 @@ public class MobileDbItemFactory extends DbItemFactory {
             if(curValue==null) {
                 curValue="null";
             }
-            dbItem.addItemValue(cursor.getColumnName(i), transferType(cursor.getType(i)), String.format("%s",cursor.getString(i)));
+            roselUpdateItem.addItemValue(cursor.getColumnName(i), transferType(cursor.getType(i)), String.format("%s",cursor.getString(i)));
         }
-        return dbItem;
+        return roselUpdateItem;
     }
 
     private static String transferType(int type){

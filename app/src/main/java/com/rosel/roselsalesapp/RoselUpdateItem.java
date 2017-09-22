@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-public class DbItem {
+public class RoselUpdateItem {
     public static final int ACTION_NEW = 1;
     public static final int ACTION_UPDATE = 2;
     public static final int ACTION_DELETE = 3;
 
     long id;
-    String table_name;
     int action;
     ArrayList<ItemValue> item_values = new ArrayList();
 
@@ -31,7 +30,6 @@ public class DbItem {
     public JSONObject toJSONObject(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", id);
-        jsonObject.put("table_name", table_name);
         jsonObject.put("action", action);
         JSONArray values = new JSONArray();
         for(ItemValue iv:item_values){
