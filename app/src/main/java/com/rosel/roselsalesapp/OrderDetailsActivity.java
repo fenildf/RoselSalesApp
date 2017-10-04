@@ -300,11 +300,15 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 AlertDialog d = (AlertDialog) dialog;
-                                TextView priceView = (TextView) d.findViewById(R.id.line_price);
-                                float p = Float.parseFloat(priceView.getText().toString());
-                                TextView quantityView = (TextView) d.findViewById(R.id.line_quantity);
-                                int q = Integer.parseInt(quantityView.getText().toString());
-                                editRow(rowIndexContext, q, p);
+                                try{
+                                    TextView priceView = (TextView) d.findViewById(R.id.line_price);
+                                    float p = Float.parseFloat(priceView.getText().toString());
+                                    TextView quantityView = (TextView) d.findViewById(R.id.line_quantity);
+                                    int q = Integer.parseInt(quantityView.getText().toString());
+                                    editRow(rowIndexContext, q, p);
+                                } catch (NumberFormatException nex){
+                                    Toast.makeText(OrderDetailsActivity.this, "Wrong format!", Toast.LENGTH_SHORT) .show();
+                                }
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, null)
@@ -706,11 +710,16 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     AlertDialog d = (AlertDialog) dialog;
-                                    TextView priceView = (TextView) d.findViewById(R.id.line_price);
-                                    float p = Float.parseFloat(priceView.getText().toString());
-                                    TextView quantityView = (TextView) d.findViewById(R.id.line_quantity);
-                                    int q = Integer.parseInt(quantityView.getText().toString());
-                                    addNewRow(curItem, q, p);
+                                    try {
+                                        TextView priceView = (TextView) d.findViewById(R.id.line_price);
+                                        float p = Float.parseFloat(priceView.getText().toString());
+                                        TextView quantityView = (TextView) d.findViewById(R.id.line_quantity);
+                                        int q = Integer.parseInt(quantityView.getText().toString());
+                                        addNewRow(curItem, q, p);
+                                    } catch (NumberFormatException nex){
+                                        Toast.makeText(OrderDetailsActivity.this, "Wrong format!", Toast.LENGTH_SHORT).show();
+                                    }
+
                                 }
                             })
                             .setNegativeButton(android.R.string.cancel, null)
@@ -720,6 +729,8 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
                     priceView.setText(String.format(Locale.ENGLISH, "%.2f", price));
                     TextView stockTextView = (TextView) dialogView.findViewById(R.id.stock_text_view);
                     stockTextView.setText("(" + getString(R.string.in_stock_label) + ": " + String.format("%d",quantity) + ")");
+                    TextView stockView = (TextView) dialogView.findViewById(R.id.line_quantity);
+                    stockView.setText("0");
                     builder.setView(dialogView);
                     AlertDialog acceptDialog = builder.create();
                     acceptDialog.show();

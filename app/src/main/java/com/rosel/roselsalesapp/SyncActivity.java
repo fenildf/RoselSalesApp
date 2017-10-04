@@ -123,25 +123,31 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                         request.getBody().add(curOrder.toJSONObject().toJSONString());
                     }
 
-                    writer.println(request.toString());
+                    writer.println(request.toJSONString());
                     writer.flush();
 
                     //confirm send success
-                    String line;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
-                        stringBuilder.append(line).append('\n');
+//                    String line;
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
+//                        stringBuilder.append(line).append('\n');
+//                    }
+//                    String serverRespone = stringBuilder.toString();
+//                    TransportMessage response = TransportMessage.fromString(serverRespone);
+
+                    String responseLine = reader.readLine();
+                    if(responseLine!=null) {
+                        TransportMessage response = TransportMessage.fromJSONString(responseLine);
+
+                        if (response.getIntention().equals(TransportMessage.NOT_REG)) {
+                            return RESULT_CODE_SERVER_REJECT_DEVICE;
+                        }
+                        if (!response.getIntention().equals(TransportMessage.POST_COMMIT)) {
+                            return RESULT_CODE_SYNC_ERROR;
+                        }
+                        mPublishProgress(100);
+                        db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
                     }
-                    String serverRespone = stringBuilder.toString();
-                    TransportMessage response = TransportMessage.fromString(serverRespone);
-                    if(response.getIntention().equals(TransportMessage.NOT_REG)){
-                        return RESULT_CODE_SERVER_REJECT_DEVICE;
-                    }
-                    if(!response.getIntention().equals(TransportMessage.POST_COMMIT)){
-                        return RESULT_CODE_SYNC_ERROR;
-                    }
-                    mPublishProgress(100);
-                    db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
                 } catch (Exception e) {
                     Log.e(getString(R.string.log_tag_send_orders), e.getMessage());
                     return RESULT_CODE_SYNC_ERROR;
@@ -306,48 +312,49 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     request.setBody(getRequestUpdateStructure());
 
                     //
-                    writer.println(request.toString());
+                    writer.println(request.toJSONString());
                     writer.flush();
 
-                    String line;// = reader.readLine();
-                    StringBuilder stringBuilder = new StringBuilder();
-                    while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
-                        stringBuilder.append(line).append('\n');
-                    }
-                    String responseFromServer = stringBuilder.toString();
+                    String responseLine = reader.readLine();
+                    if(responseLine!=null) {
+                        TransportMessage response = TransportMessage.fromJSONString(responseLine);
 
-                    TransportMessage response = TransportMessage.fromString(responseFromServer);
-                    if(response.getIntention().equals(TransportMessage.NOT_REG)){
-                        return RESULT_CODE_SERVER_REJECT_DEVICE;
-                    }
+                        if (response.getIntention().equals(TransportMessage.NOT_REG)) {
+                            return RESULT_CODE_SERVER_REJECT_DEVICE;
+                        }
 
-                    //write updates to mobile DB
-                    ArrayList<RoselUpdateStructure> updateStructures = new ArrayList<>();
-                    int updateSize = 0;
-                    int i = 0;
-                    for(String updateString:response.getBody()){
-                        updateStructures.add(factory.fillFromJSONString(updateString));
-                        updateSize += updateStructures.get(updateStructures.size()-1).getUpdateItems().size();
-                    }
-                    try {
-                        db.beginTransaction();
-                        for(RoselUpdateStructure roselUpdateStructure:updateStructures){
-                            for(RoselUpdateItem updateItem : roselUpdateStructure.getUpdateItems()){
-                                db.insertWithOnConflict(roselUpdateStructure.getTableName(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
-                                mPublishProgress(Math.round(i++*100/updateSize));
+                        //write updates to mobile DB
+                        ArrayList<RoselUpdateStructure> updateStructures = new ArrayList<>();
+                        int updateSize = 0;
+                        int i = 0;
+                        for (String updateString : response.getBody()) {
+                            updateStructures.add(factory.fillFromJSONString(updateString));
+                            updateSize += updateStructures.get(updateStructures.size() - 1).getUpdateItems().size();
+                        }
+                        try {
+                            db.beginTransaction();
+                            for (RoselUpdateStructure roselUpdateStructure : updateStructures) {
+                                for (RoselUpdateItem updateItem : roselUpdateStructure.getUpdateItems()) {
+                                    db.insertWithOnConflict(roselUpdateStructure.getTableName(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
+                                    mPublishProgress(Math.round(i++ * 100 / updateSize));
+                                }
+                                ContentValues newTableVersionContentValues = new ContentValues();
+                                newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, roselUpdateStructure.getUpdateVersion());
+                                db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{roselUpdateStructure.getTableName()});
                             }
-                            ContentValues newTableVersionContentValues = new ContentValues();
-                            newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, roselUpdateStructure.getUpdateVersion());
-                            db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{roselUpdateStructure.getTableName()});
+                            db.setTransactionSuccessful();
+
+                        } catch (Exception e) {
+                            Log.e(getString(R.string.socket_log), e.getMessage());
+                            return RESULT_CODE_DB_UPDATE_ERROR;
+                        } finally {
+                            if (db != null && db.inTransaction()) {
+                                db.endTransaction();
+                            }
                         }
-                        db.setTransactionSuccessful();
-                    } catch (Exception e) {
-                        Log.e(getString(R.string.socket_log), e.getMessage());
+                    }
+                    else {
                         return RESULT_CODE_DB_UPDATE_ERROR;
-                    } finally {
-                        if(db!=null && db.inTransaction()){
-                            db.endTransaction();
-                        }
                     }
                 } catch (Exception e) {
                     Log.e(getString(R.string.update_log), e.getMessage());
