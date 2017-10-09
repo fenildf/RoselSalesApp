@@ -9,14 +9,14 @@ public class RoselUpdateItem {
     public static final int ACTION_UPDATE = 2;
     public static final int ACTION_DELETE = 3;
 
-    long id;
-    int action;
-    ArrayList<ItemValue> item_values = new ArrayList();
+    public long id;
+    public int action;
+    public ArrayList<ItemValue> item_values = new ArrayList();
 
-    class ItemValue{
-        String name;
-        String type;
-        String value;
+    public class ItemValue{
+        public String name;
+        public String type;
+        public String value;
     }
 
     public void addItemValue(String name, String type, String value) {
@@ -41,5 +41,10 @@ public class RoselUpdateItem {
         }
         jsonObject.put("item_values", values);
         return jsonObject;
+    }
+
+    @Override
+    public String toString() {
+        return this.toJSONObject().toString();
     }
 }

@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,6 +25,7 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SyncActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
 
@@ -254,7 +256,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         private static final int RESULT_CODE_SERVER_REJECT_DEVICE = 4;
 
         Socket socket = null;
-        UpdateStructureFactory factory = new MobileUpdateStructureFactory(new MobileUpdateItemFactory());
+        UpdateItemFactory updateItemFactory = new MobileUpdateItemFactory();
         SQLiteDatabase db=null;
         PrintWriter writer;
         BufferedReader reader;
@@ -300,62 +302,57 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
 
                     writer = new PrintWriter(socket.getOutputStream());
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                    //build transport message
-                    TransportMessage request = new TransportMessage();
-                    request.setDevice_id(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
-                    request.setIntention(TransportMessage.GET);
-
-                    //
                     RoselDatabaseHelper helper = new RoselDatabaseHelper(SyncActivity.this);
                     db = helper.getWritableDatabase();
-                    request.setBody(getRequestUpdateStructure());
 
-                    //
-                    writer.println(request.toJSONString());
+                    writer.println(TransportMessage.GET);
+                    writer.println(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid());
                     writer.flush();
 
-                    String responseLine = reader.readLine();
-                    if(responseLine!=null) {
-                        TransportMessage response = TransportMessage.fromJSONString(responseLine);
-
-                        if (response.getIntention().equals(TransportMessage.NOT_REG)) {
+                    String serverResponseString = reader.readLine();
+                    switch (serverResponseString){
+                        case TransportMessage.NOT_REG:
                             return RESULT_CODE_SERVER_REJECT_DEVICE;
-                        }
+                        case TransportMessage.START_UPDATE:
+                            //starting update process
+                            int updRes;
 
-                        //write updates to mobile DB
-                        ArrayList<RoselUpdateStructure> updateStructures = new ArrayList<>();
-                        int updateSize = 0;
-                        int i = 0;
-                        for (String updateString : response.getBody()) {
-                            updateStructures.add(factory.fillFromJSONString(updateString));
-                            updateSize += updateStructures.get(updateStructures.size() - 1).getUpdateItems().size();
-                        }
-                        try {
-                            db.beginTransaction();
-                            for (RoselUpdateStructure roselUpdateStructure : updateStructures) {
-                                for (RoselUpdateItem updateItem : roselUpdateStructure.getUpdateItems()) {
-                                    db.insertWithOnConflict(roselUpdateStructure.getTableName(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
-                                    mPublishProgress(Math.round(i++ * 100 / updateSize));
-                                }
-                                ContentValues newTableVersionContentValues = new ContentValues();
-                                newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, roselUpdateStructure.getUpdateVersion());
-                                db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{roselUpdateStructure.getTableName()});
+                            //updating CLIENTS
+                            updRes = UpdateTable(DbContract.Clients.TABLE_NAME);
+                            if(updRes!=RESULT_CODE_SUCCESS){
+                                return updRes;
                             }
-                            db.setTransactionSuccessful();
 
-                        } catch (Exception e) {
-                            Log.e(getString(R.string.socket_log), e.getMessage());
-                            return RESULT_CODE_DB_UPDATE_ERROR;
-                        } finally {
-                            if (db != null && db.inTransaction()) {
-                                db.endTransaction();
+                            //updating PRODUCTS
+                            updRes = UpdateTable(DbContract.Products.TABLE_NAME);
+                            if(updRes!=RESULT_CODE_SUCCESS){
+                                return updRes;
                             }
-                        }
+
+                            //updating ADDRESSES
+                            updRes = UpdateTable(DbContract.Addresses.TABLE_NAME);
+                            if(updRes!=RESULT_CODE_SUCCESS){
+                                return updRes;
+                            }
+
+                            //updating STOCK
+                            updRes = UpdateTable(DbContract.Stock.TABLE_NAME);
+                            if(updRes!=RESULT_CODE_SUCCESS){
+                                return updRes;
+                            }
+
+                            //updating PRICES
+                            updRes = UpdateTable(DbContract.Prices.TABLE_NAME);
+                            if(updRes!=RESULT_CODE_SUCCESS){
+                                return updRes;
+                            }
+
+                            break;
+
+                        default:
+                            return RESULT_CODE_SYNC_ERROR;
                     }
-                    else {
-                        return RESULT_CODE_DB_UPDATE_ERROR;
-                    }
+
                 } catch (Exception e) {
                     Log.e(getString(R.string.update_log), e.getMessage());
                     return RESULT_CODE_SYNC_ERROR;
@@ -425,20 +422,57 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         }
 
-        ArrayList<String> getRequestUpdateStructure(){
-            ArrayList<String> res = new ArrayList<>();
-            RoselUpdateStructure updateStructure;
-            Cursor updcursor = db.query(DbContract.Versions.TABLE_NAME, new String[]{DbContract.Versions.COLUMN_NAME_TABLE_NAME, DbContract.Versions.COLUMN_NAME_VERSION},null, null, null, null, null);
+        private int UpdateTable(String tableName) throws IOException {
+            String serverResponseString;
+            writer.println(getRequestUpdateInfo(tableName).toJSON());
+            writer.flush();
+
+            serverResponseString = reader.readLine(); //contains RoselUpdateInfo in JSON
+            if(serverResponseString==null){
+                return RESULT_CODE_SYNC_ERROR;
+            }
+            RoselUpdateInfo serverUpdateInfo = RoselJsonParser.fromJSONString(serverResponseString);
+            for(int i=0;i<serverUpdateInfo.getAmount();i++){
+                serverResponseString = reader.readLine(); //contains RoselUpdateInfo in JSON
+                if(serverResponseString==null){
+                    return RESULT_CODE_SYNC_ERROR;
+                }
+                serverUpdateInfo.addUpdateItem(updateItemFactory.fillFromJSONString(serverResponseString));
+            }
+            mPublishProgress(0);
+            int i = 0;
+            try {
+                db.beginTransaction();
+                for (RoselUpdateItem updateItem : serverUpdateInfo.getUpdateItems()) {
+                    db.insertWithOnConflict(serverUpdateInfo.getTable(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
+                    mPublishProgress(Math.round(i++ * 100 / serverUpdateInfo.getAmount()));
+                }
+                ContentValues newTableVersionContentValues = new ContentValues();
+                newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, serverUpdateInfo.getVersion());
+                db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{serverUpdateInfo.getTable()});
+                db.setTransactionSuccessful();
+            } catch (Exception e) {
+                Log.e(getString(R.string.socket_log), e.getMessage());
+                return RESULT_CODE_DB_UPDATE_ERROR;
+            } finally {
+                if (db != null && db.inTransaction()) {
+                    db.endTransaction();
+                }
+            }
+            return RESULT_CODE_SUCCESS;
+        }
+
+        private RoselUpdateInfo getRequestUpdateInfo(String table){
+            RoselUpdateInfo res = null;
+            Cursor updcursor = db.query(DbContract.Versions.TABLE_NAME, new String[]{DbContract.Versions.COLUMN_NAME_TABLE_NAME, DbContract.Versions.COLUMN_NAME_VERSION}, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{table}, null, null, null);
             while(updcursor.moveToNext()){
-                updateStructure = new RoselUpdateStructure(updcursor.getString(updcursor.getColumnIndex(DbContract.Versions.COLUMN_NAME_TABLE_NAME)));
-                updateStructure.setUpdateVersion(updcursor.getLong(updcursor.getColumnIndex(DbContract.Versions.COLUMN_NAME_VERSION)));
-                res.add(updateStructure.toJSONObject().toJSONString());
+                res = new RoselUpdateInfo(table, updcursor.getLong(updcursor.getColumnIndex(DbContract.Versions.COLUMN_NAME_VERSION)), 0);
             }
             updcursor.close();
             return res;
         }
 
-        ContentValues createContentValues(RoselUpdateItem roselUpdateItem){
+        private ContentValues createContentValues(RoselUpdateItem roselUpdateItem){
             ContentValues contentValues = new ContentValues();
             contentValues.put("_id", roselUpdateItem.id);
             for(RoselUpdateItem.ItemValue iv: roselUpdateItem.item_values){

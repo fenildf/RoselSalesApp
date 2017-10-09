@@ -32,37 +32,37 @@ public class MobileUpdateItemFactory implements UpdateItemFactory {
         return roselUpdateItem;
     }
 
-    public RoselUpdateItem fillFromCursor(Cursor cursor, String tableName) throws SQLException {
-        RoselUpdateItem roselUpdateItem = new RoselUpdateItem();
-        roselUpdateItem.id = cursor.getLong(cursor.getColumnIndex("_id"));
-        roselUpdateItem.action = cursor.getInt(cursor.getColumnIndex("action"));
+//    public RoselUpdateItem fillFromCursor(Cursor cursor, String tableName) throws SQLException {
+//        RoselUpdateItem roselUpdateItem = new RoselUpdateItem();
+//        roselUpdateItem.id = cursor.getLong(cursor.getColumnIndex("_id"));
+//        roselUpdateItem.action = cursor.getInt(cursor.getColumnIndex("action"));
+//
+//        int columnsCount = cursor.getColumnCount();
+//        for (int i = 2; i < columnsCount; i++) {
+//            String curValue = cursor.getString(i);
+//            if(curValue==null) {
+//                curValue="null";
+//            }
+//            roselUpdateItem.addItemValue(cursor.getColumnName(i), transferType(cursor.getType(i)), String.format("%s",cursor.getString(i)));
+//        }
+//        return roselUpdateItem;
+//    }
 
-        int columnsCount = cursor.getColumnCount();
-        for (int i = 2; i < columnsCount; i++) {
-            String curValue = cursor.getString(i);
-            if(curValue==null) {
-                curValue="null";
-            }
-            roselUpdateItem.addItemValue(cursor.getColumnName(i), transferType(cursor.getType(i)), String.format("%s",cursor.getString(i)));
-        }
-        return roselUpdateItem;
-    }
-
-    private static String transferType(int type){
-        String result="";
-        switch (type){
-            case Cursor.FIELD_TYPE_INTEGER:
-                result = "INTEGER";
-                break;
-            case Cursor.FIELD_TYPE_STRING:
-                result = "TEXT";
-                break;
-            case Cursor.FIELD_TYPE_FLOAT:
-                result = "REAL";
-                break;
-            default:
-                result = "TEXT";
-        }
-        return result;
-    }
+//    private static String transferType(int type){
+//        String result="";
+//        switch (type){
+//            case Cursor.FIELD_TYPE_INTEGER:
+//                result = "INTEGER";
+//                break;
+//            case Cursor.FIELD_TYPE_STRING:
+//                result = "TEXT";
+//                break;
+//            case Cursor.FIELD_TYPE_FLOAT:
+//                result = "REAL";
+//                break;
+//            default:
+//                result = "TEXT";
+//        }
+//        return result;
+//    }
 }
