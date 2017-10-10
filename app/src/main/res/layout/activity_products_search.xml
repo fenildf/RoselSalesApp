@@ -4,7 +4,7 @@
     android:id="@+id/activity_goods_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.rosel.roselsalesapp.ProductsListActivity"
+    tools:context="com.rosel.roselsalesapp.activity.ProductsListActivity"
     android:focusable="true"
     android:focusableInTouchMode="true">
 

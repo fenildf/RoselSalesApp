@@ -1,6 +1,12 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.activity;
 
-import com.rosel.roselsalesapp.DbContract.*;
+import com.rosel.roselsalesapp.objects.Client;
+import com.rosel.roselsalesapp.Db.DbContract.*;
+import com.rosel.roselsalesapp.objects.Order;
+import com.rosel.roselsalesapp.objects.Product;
+import com.rosel.roselsalesapp.R;
+import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+import com.rosel.roselsalesapp.util.RoselUpdateItem;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;

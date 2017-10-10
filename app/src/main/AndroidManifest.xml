@@ -15,9 +15,9 @@
         >
 
         <activity
-            android:name=".ProductsListActivity"
+            android:name=".activity.ProductsListActivity"
             android:launchMode="singleTop"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -28,91 +28,91 @@
                 android:value=".ProductsListActivity" />
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".SearchProductActivity"
+            android:name=".activity.SearchProductActivity"
             android:launchMode="singleTop"
-            android:parentActivityName=".ProductsListActivity">
+            android:parentActivityName=".activity.ProductsListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ProductsListActivity" />
+                android:value=".activity.ProductsListActivity" />
         </activity>
         <activity
-            android:name=".ProductDetailActivity"
-            android:parentActivityName=".ProductsListActivity">
+            android:name=".activity.ProductDetailActivity"
+            android:parentActivityName=".activity.ProductsListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ProductsListActivity" />
+                android:value=".activity.ProductsListActivity" />
         </activity>
         <activity
-            android:name=".OrderDetailsActivity"
+            android:name=".activity.OrderDetailsActivity"
             android:screenOrientation="sensorPortrait"
 
-            android:parentActivityName=".OrdersListActivity">
+            android:parentActivityName=".activity.OrdersListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".OrdersListActivity" />
+                android:value=".activity.OrdersListActivity" />
         </activity>
         <activity
-            android:name=".OrdersListActivity"
-            android:parentActivityName=".MainActivity">
+            android:name=".activity.OrdersListActivity"
+            android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".ClientsListActivity"
+            android:name=".activity.ClientsListActivity"
             android:launchMode="singleTop"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable"
                 android:value=".ClientsListActivity" />
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".ClientDetailActivity"
-            android:parentActivityName=".ClientsListActivity">
+            android:name=".activity.ClientDetailActivity"
+            android:parentActivityName=".activity.ClientsListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ClientsListActivity" />
+                android:value=".activity.ClientsListActivity" />
         </activity>
         <activity
-            android:name=".SyncActivity"
-            android:parentActivityName=".MainActivity" >
+            android:name=".activity.SyncActivity"
+            android:parentActivityName=".activity.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".SettingsActivity"
-            android:parentActivityName=".MainActivity" >
+            android:name=".activity.SettingsActivity"
+            android:parentActivityName=".activity.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".InformationActivity"
-            android:parentActivityName=".SettingsActivity" >
+            android:name=".activity.InformationActivity"
+            android:parentActivityName=".activity.SettingsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".SettingsActivity" />
+                android:value=".activity.SettingsActivity" />
         </activity>
         <activity
-            android:name=".DatabaseActivity"
-            android:parentActivityName=".SettingsActivity" >
+            android:name=".activity.DatabaseActivity"
+            android:parentActivityName=".activity.SettingsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".SettingsActivity" />
+                android:value=".activity.SettingsActivity" />
         </activity>
         <activity
-            android:name=".MainActivity">
+            android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME"/>

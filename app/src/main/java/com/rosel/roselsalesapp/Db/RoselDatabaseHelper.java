@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.Db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -7,6 +7,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.rosel.roselsalesapp.R;
+
 
 public class RoselDatabaseHelper extends SQLiteOpenHelper {
 
@@ -14,7 +16,7 @@ public class RoselDatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "Rosel";
     private static final int DB_VERSION = 1;
 
-    RoselDatabaseHelper(Context context) throws Exception{
+    public RoselDatabaseHelper(Context context) throws Exception{
         super(context, DB_NAME, null, DB_VERSION);
         curContext = context;
     }

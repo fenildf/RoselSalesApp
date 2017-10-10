@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.activity;
 
 import android.app.Activity;
 import android.os.Bundle;

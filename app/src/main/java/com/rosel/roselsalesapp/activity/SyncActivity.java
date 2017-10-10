@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.activity;
 
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -16,7 +16,23 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.rosel.roselsalesapp.objects.Client;
+import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.util.DeviceUuidFactory;
+import com.rosel.roselsalesapp.util.MobileUpdateItemFactory;
+import com.rosel.roselsalesapp.objects.Order;
+import com.rosel.roselsalesapp.objects.Product;
+import com.rosel.roselsalesapp.R;
+import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+import com.rosel.roselsalesapp.util.RoselUpdateInfo;
+import com.rosel.roselsalesapp.util.RoselUpdateItem;
+import com.rosel.roselsalesapp.util.TransportProtocol;
+import com.rosel.roselsalesapp.util.UpdateItemFactory;
+
+import org.json.simple.parser.ParseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +41,6 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class SyncActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
 
@@ -34,6 +49,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
     private ListView menuListView;
     private int progressMode;
     private ProgressDialog progressDialog;
+    private TextView progressInfo;
 
     //TODO notification after sync
     //TODO cancel loading on back/home button (maybe on pause activity?)
@@ -81,6 +97,8 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 case 0:
                     sendingProgressBar.setVisibility(View.VISIBLE);
                     sendingProgressBar.setProgress(0);
+                    progressInfo.setVisibility(View.VISIBLE);
+                    progressInfo.setText("Sending orders...");
                     break;
                 case 1:
                     progressDialog = new ProgressDialog(SyncActivity.this);
@@ -114,41 +132,33 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     socket.connect(new InetSocketAddress(prefs.getString(getString(R.string.pref_server_address_key),""), Integer.parseInt(prefs.getString(getString(R.string.pref_server_port_key),""))), Integer.parseInt(prefs.getString(getString(R.string.pref_server_timeout_key),"")));
                     writer = new PrintWriter(socket.getOutputStream());
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                    TransportMessage request = new TransportMessage();
-                    request.setDevice_id(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
-                    request.setIntention(TransportMessage.POST);
-
                     RoselDatabaseHelper dbHelper = new RoselDatabaseHelper(SyncActivity.this);
                     db = dbHelper.getReadableDatabase();
-                    for(Order curOrder:getOrdersUpdates()){
-                        request.getBody().add(curOrder.toJSONObject().toJSONString());
-                    }
 
-                    writer.println(request.toJSONString());
+                    writer.println(TransportProtocol.POST);
+                    writer.println(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid().toString());
                     writer.flush();
 
-                    //confirm send success
-//                    String line;
-//                    StringBuilder stringBuilder = new StringBuilder();
-//                    while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
-//                        stringBuilder.append(line).append('\n');
-//                    }
-//                    String serverRespone = stringBuilder.toString();
-//                    TransportMessage response = TransportMessage.fromString(serverRespone);
-
-                    String responseLine = reader.readLine();
-                    if(responseLine!=null) {
-                        TransportMessage response = TransportMessage.fromJSONString(responseLine);
-
-                        if (response.getIntention().equals(TransportMessage.NOT_REG)) {
+                    String serverResponseString;
+                    serverResponseString = reader.readLine();
+                    switch (serverResponseString){
+                        case TransportProtocol.NOT_REG:
                             return RESULT_CODE_SERVER_REJECT_DEVICE;
-                        }
-                        if (!response.getIntention().equals(TransportMessage.POST_COMMIT)) {
+                        case TransportProtocol.START_POST:
+                            for(Order curOrder:getOrdersUpdates()){
+                                writer.println(curOrder.toJSONObject().toJSONString());
+                            }
+                            writer.println(TransportProtocol.COMMIT);
+                            writer.flush();
+                            serverResponseString = reader.readLine();
+                            if(serverResponseString == null || !serverResponseString.equals(TransportProtocol.COMMIT)){
+                                return RESULT_CODE_SYNC_ERROR;
+                            }
+                            mPublishProgress(100);
+                            db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
+                            break;
+                        default:
                             return RESULT_CODE_SYNC_ERROR;
-                        }
-                        mPublishProgress(100);
-                        db.execSQL("DELETE FROM " + DbContract.Updates.TABLE_NAME);
                     }
                 } catch (Exception e) {
                     Log.e(getString(R.string.log_tag_send_orders), e.getMessage());
@@ -239,6 +249,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             switch (progressMode){
                 case 0:
                     sendingProgressBar.setVisibility(View.INVISIBLE);
+                    progressInfo.setVisibility(View.INVISIBLE);
                     break;
                 case 1:
                     progressDialog.dismiss();
@@ -268,6 +279,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 case 0:
                     updateProgressBar.setVisibility(View.VISIBLE);
                     updateProgressBar.setProgress(0);
+                    progressInfo.setVisibility(View.VISIBLE);
                     break;
                 case 1:
                     progressDialog = new ProgressDialog(SyncActivity.this);
@@ -283,6 +295,27 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             switch (progressMode){
                 case 0:
                     updateProgressBar.setProgress(values[0]);
+                    if(values.length==2) {
+                        String tableName = "";
+                        switch (values[1]) {
+                            case 0:
+                                tableName = DbContract.Clients.TABLE_NAME;
+                                break;
+                            case 1:
+                                tableName = DbContract.Products.TABLE_NAME;
+                                break;
+                            case 2:
+                                tableName = DbContract.Addresses.TABLE_NAME;
+                                break;
+                            case 3:
+                                tableName = DbContract.Stock.TABLE_NAME;
+                                break;
+                            case 4:
+                                tableName = DbContract.Prices.TABLE_NAME;
+                                break;
+                        }
+                        progressInfo.setText("Updating " + tableName);
+                    }
                     break;
                 case 1:
                     progressDialog.setProgress(values[0]);
@@ -305,44 +338,44 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     RoselDatabaseHelper helper = new RoselDatabaseHelper(SyncActivity.this);
                     db = helper.getWritableDatabase();
 
-                    writer.println(TransportMessage.GET);
+                    writer.println(TransportProtocol.GET);
                     writer.println(new DeviceUuidFactory(SyncActivity.this).getDeviceUuid());
                     writer.flush();
 
                     String serverResponseString = reader.readLine();
                     switch (serverResponseString){
-                        case TransportMessage.NOT_REG:
+                        case TransportProtocol.NOT_REG:
                             return RESULT_CODE_SERVER_REJECT_DEVICE;
-                        case TransportMessage.START_UPDATE:
+                        case TransportProtocol.START_UPDATE:
                             //starting update process
                             int updRes;
 
                             //updating CLIENTS
-                            updRes = UpdateTable(DbContract.Clients.TABLE_NAME);
+                            updRes = UpdateTable(DbContract.Clients.TABLE_NAME, 0);
                             if(updRes!=RESULT_CODE_SUCCESS){
                                 return updRes;
                             }
 
                             //updating PRODUCTS
-                            updRes = UpdateTable(DbContract.Products.TABLE_NAME);
+                            updRes = UpdateTable(DbContract.Products.TABLE_NAME, 1);
                             if(updRes!=RESULT_CODE_SUCCESS){
                                 return updRes;
                             }
 
                             //updating ADDRESSES
-                            updRes = UpdateTable(DbContract.Addresses.TABLE_NAME);
+                            updRes = UpdateTable(DbContract.Addresses.TABLE_NAME, 2);
                             if(updRes!=RESULT_CODE_SUCCESS){
                                 return updRes;
                             }
 
                             //updating STOCK
-                            updRes = UpdateTable(DbContract.Stock.TABLE_NAME);
+                            updRes = UpdateTable(DbContract.Stock.TABLE_NAME, 3);
                             if(updRes!=RESULT_CODE_SUCCESS){
                                 return updRes;
                             }
 
                             //updating PRICES
-                            updRes = UpdateTable(DbContract.Prices.TABLE_NAME);
+                            updRes = UpdateTable(DbContract.Prices.TABLE_NAME, 4);
                             if(updRes!=RESULT_CODE_SUCCESS){
                                 return updRes;
                             }
@@ -386,8 +419,8 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             return RESULT_CODE_SUCCESS;
         }
 
-        void mPublishProgress(int progressToPublish){
-            publishProgress(progressToPublish);
+        void mPublishProgress(Integer... values){
+            publishProgress(values);
         }
 
         @Override
@@ -415,6 +448,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             switch (progressMode){
                 case 0:
                     updateProgressBar.setVisibility(View.INVISIBLE);
+                    progressInfo.setVisibility(View.INVISIBLE);
                     break;
                 case 1:
                     progressDialog.dismiss();
@@ -422,8 +456,11 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         }
 
-        private int UpdateTable(String tableName) throws IOException {
+        private int UpdateTable(String tableName, int progressCode) throws IOException {
             String serverResponseString;
+
+            mPublishProgress(0, progressCode);
+
             writer.println(getRequestUpdateInfo(tableName).toJSON());
             writer.flush();
 
@@ -431,7 +468,13 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             if(serverResponseString==null){
                 return RESULT_CODE_SYNC_ERROR;
             }
-            RoselUpdateInfo serverUpdateInfo = RoselJsonParser.fromJSONString(serverResponseString);
+            RoselUpdateInfo serverUpdateInfo = null;
+            try {
+                serverUpdateInfo = RoselUpdateInfo.fromJSONString(serverResponseString);
+            } catch (ParseException e) {
+                Log.e(getString(R.string.update_log),e.getMessage());
+                return RESULT_CODE_SYNC_ERROR;
+            }
             for(int i=0;i<serverUpdateInfo.getAmount();i++){
                 serverResponseString = reader.readLine(); //contains RoselUpdateInfo in JSON
                 if(serverResponseString==null){
@@ -439,7 +482,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 }
                 serverUpdateInfo.addUpdateItem(updateItemFactory.fillFromJSONString(serverResponseString));
             }
-            mPublishProgress(0);
+
             int i = 0;
             try {
                 db.beginTransaction();
@@ -509,6 +552,8 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         updateProgressBar.setVisibility(View.INVISIBLE);
         sendingProgressBar = (ProgressBar) findViewById(R.id.sending_progress_bar);
         sendingProgressBar.setVisibility(View.INVISIBLE);
+        progressInfo = (TextView) findViewById(R.id.progress_info_text);
+        progressInfo.setVisibility(View.INVISIBLE);
     }
 
     @Override

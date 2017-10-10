@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.util;
 
 import java.util.ArrayList;
 import org.json.simple.JSONArray;

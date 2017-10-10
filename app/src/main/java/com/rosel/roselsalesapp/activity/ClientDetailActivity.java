@@ -1,7 +1,10 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.activity;
 
-import com.rosel.roselsalesapp.DbContract.*;
-import android.app.Activity;
+import com.rosel.roselsalesapp.objects.Client;
+import com.rosel.roselsalesapp.Db.DbContract.*;
+import com.rosel.roselsalesapp.R;
+import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;

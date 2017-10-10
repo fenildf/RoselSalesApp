@@ -1,7 +1,11 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.activity;
 
-import com.rosel.roselsalesapp.DbContract.*;
-import android.app.Activity;
+import com.rosel.roselsalesapp.objects.Client;
+import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.Db.DbContract.*;
+import com.rosel.roselsalesapp.R;
+import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +13,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;

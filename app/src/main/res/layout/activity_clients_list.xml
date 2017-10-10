@@ -4,7 +4,7 @@
     android:id="@+id/activity_clients_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.rosel.roselsalesapp.ClientsListActivity">
+    tools:context="com.rosel.roselsalesapp.activity.ClientsListActivity">
 
     <ListView
         android:layout_width="match_parent"

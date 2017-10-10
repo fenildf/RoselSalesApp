@@ -1,4 +1,6 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.util;
+
+import com.rosel.roselsalesapp.util.RoselUpdateItem;
 
 public interface UpdateItemFactory {
 

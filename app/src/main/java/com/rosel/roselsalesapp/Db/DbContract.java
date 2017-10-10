@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.Db;
 
 import android.provider.BaseColumns;
 

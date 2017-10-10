@@ -1,10 +1,11 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.Db;
 
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import java.util.ArrayList;
+import com.rosel.roselsalesapp.objects.Order;
+
 import java.util.HashMap;
 import java.util.Map;
 

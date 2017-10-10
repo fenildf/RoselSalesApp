@@ -4,7 +4,7 @@
     android:id="@+id/activity_connection"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.rosel.roselsalesapp.SyncActivity">
+    tools:context="com.rosel.roselsalesapp.activity.SyncActivity">
 
     <ProgressBar
         style="@android:style/Widget.Holo.Light.ProgressBar.Horizontal"
@@ -15,10 +15,10 @@
         android:layout_margin="20dp" />
 
     <ProgressBar
+        android:id="@+id/sending_progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/sending_progress_bar"
         android:layout_margin="20dp" />
 
     <ListView
@@ -26,4 +26,15 @@
         android:layout_height="match_parent"
         android:id="@+id/sync_menu_list_view"
         android:entries="@array/sync_menu_list"/>
+
+    <TextView
+        android:id="@+id/progress_info_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/update_progress_bar"
+        android:layout_alignLeft="@+id/update_progress_bar"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/update_progress_bar"
+        android:layout_alignStart="@+id/update_progress_bar"
+        android:gravity="center" />
 </RelativeLayout>

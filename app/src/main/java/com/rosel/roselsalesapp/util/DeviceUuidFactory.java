@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;

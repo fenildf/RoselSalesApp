@@ -1,7 +1,10 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.util;
 
 import java.util.ArrayList;
+
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class RoselUpdateInfo {
 
@@ -62,6 +65,14 @@ public class RoselUpdateInfo {
 
     public ArrayList<RoselUpdateItem> getUpdateItems() {
         return updateItems;
+    }
+
+    public static RoselUpdateInfo fromJSONString(String jsonString) throws ParseException {
+        RoselUpdateInfo updateInfo = null;
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObj = (JSONObject) parser.parse(jsonString);
+        updateInfo = new RoselUpdateInfo((String) jsonObj.get("table"),(long) jsonObj.get("version"),(long) jsonObj.get("amount"));
+        return updateInfo;
     }
 
 }

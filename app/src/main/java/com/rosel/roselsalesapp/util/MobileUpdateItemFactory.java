@@ -1,11 +1,9 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.util;
 
-import android.database.Cursor;
 import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.sql.SQLException;
 
 public class MobileUpdateItemFactory implements UpdateItemFactory {
 

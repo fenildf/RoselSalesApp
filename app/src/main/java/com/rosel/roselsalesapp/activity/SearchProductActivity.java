@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.activity;
 
 import android.app.SearchManager;
 import android.content.Intent;
@@ -12,6 +12,11 @@ import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
+
+import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.objects.Product;
+import com.rosel.roselsalesapp.R;
+import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
 
 public class SearchProductActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
 
