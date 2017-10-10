@@ -1,7 +1,9 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.objects;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
+import com.rosel.roselsalesapp.Db.DbContract;
 
 import java.io.Serializable;
 import java.util.HashMap;

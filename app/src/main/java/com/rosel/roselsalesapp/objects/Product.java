@@ -1,6 +1,8 @@
-package com.rosel.roselsalesapp;
+package com.rosel.roselsalesapp.objects;
 
 import android.database.Cursor;
+
+import com.rosel.roselsalesapp.Db.DbContract;
 
 import java.io.Serializable;
 
