@@ -20,13 +20,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.rosel.roselsalesapp.objects.Client;
-import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.db.DbContract;
 import com.rosel.roselsalesapp.util.DeviceUuidFactory;
 import com.rosel.roselsalesapp.util.MobileUpdateItemFactory;
 import com.rosel.roselsalesapp.objects.Order;
 import com.rosel.roselsalesapp.objects.Product;
 import com.rosel.roselsalesapp.R;
-import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+import com.rosel.roselsalesapp.db.RoselDatabaseHelper;
 import com.rosel.roselsalesapp.util.RoselUpdateInfo;
 import com.rosel.roselsalesapp.util.RoselUpdateItem;
 import com.rosel.roselsalesapp.util.TransportProtocol;

@@ -3,7 +3,7 @@ package com.rosel.roselsalesapp.objects;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.db.DbContract;
 
 import java.io.Serializable;
 import java.util.HashMap;

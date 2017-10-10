@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp.Db;
+package com.rosel.roselsalesapp.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

@@ -1,8 +1,8 @@
 package com.rosel.roselsalesapp.activity;
 
-import com.rosel.roselsalesapp.Db.DbContract.*;
+import com.rosel.roselsalesapp.db.DbContract.*;
 import com.rosel.roselsalesapp.R;
-import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+import com.rosel.roselsalesapp.db.RoselDatabaseHelper;
 
 import android.content.Intent;
 import android.database.Cursor;

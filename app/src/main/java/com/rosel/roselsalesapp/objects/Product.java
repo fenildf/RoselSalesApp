@@ -2,7 +2,7 @@ package com.rosel.roselsalesapp.objects;
 
 import android.database.Cursor;
 
-import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.db.DbContract;
 
 import java.io.Serializable;
 

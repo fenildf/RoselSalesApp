@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.rosel.roselsalesapp.Db.DbContract;
+import com.rosel.roselsalesapp.db.DbContract;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

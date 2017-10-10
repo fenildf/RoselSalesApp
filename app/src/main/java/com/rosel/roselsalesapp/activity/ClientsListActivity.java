@@ -1,10 +1,10 @@
 package com.rosel.roselsalesapp.activity;
 
 import com.rosel.roselsalesapp.objects.Client;
-import com.rosel.roselsalesapp.Db.DbContract;
-import com.rosel.roselsalesapp.Db.DbContract.*;
+import com.rosel.roselsalesapp.db.DbContract;
+import com.rosel.roselsalesapp.db.DbContract.*;
 import com.rosel.roselsalesapp.R;
-import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+import com.rosel.roselsalesapp.db.RoselDatabaseHelper;
 
 import android.app.SearchManager;
 import android.content.Context;

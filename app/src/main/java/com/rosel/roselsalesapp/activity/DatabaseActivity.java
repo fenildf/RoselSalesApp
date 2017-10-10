@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.rosel.roselsalesapp.R;
-import com.rosel.roselsalesapp.Db.RoselDatabaseHelper;
+import com.rosel.roselsalesapp.db.RoselDatabaseHelper;
 
 public class DatabaseActivity extends ActionBarActivity {
 

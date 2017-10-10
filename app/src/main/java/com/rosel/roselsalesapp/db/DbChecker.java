@@ -1,4 +1,4 @@
-package com.rosel.roselsalesapp.Db;
+package com.rosel.roselsalesapp.db;
 
 
 import android.database.Cursor;
