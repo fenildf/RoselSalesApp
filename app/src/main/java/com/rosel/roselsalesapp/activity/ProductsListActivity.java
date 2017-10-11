@@ -282,11 +282,9 @@ public class ProductsListActivity extends ActionBarActivity implements SearchVie
                                     int q = Integer.parseInt(quantityView.getText().toString());
 
                                     Order.OrderLine newLine = order.addLine();
-                                    if(curItem!=null) {
-                                        newLine.setItem(curItem);
-                                        newLine.setQuantity(q);
-                                        newLine.setPrice(p);
-                                    }
+                                    newLine.setItem(curItem);
+                                    newLine.setQuantity(q);
+                                    newLine.setPrice(p);
                                 }
                             })
                             .setNegativeButton(android.R.string.cancel, null)

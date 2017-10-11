@@ -13,10 +13,6 @@ public class RoselUpdateInfo {
     private long amount;
     private ArrayList<RoselUpdateItem> updateItems = new ArrayList<RoselUpdateItem>();
 
-    public RoselUpdateInfo(String table) {
-        this.table = table;
-    }
-
     public RoselUpdateInfo(String table, long version, long amount) {
         this.table = table;
         this.version = version;
@@ -52,7 +48,7 @@ public class RoselUpdateInfo {
     }
 
     public boolean isEmpty(){
-        return getUpdateItems()!=null && getUpdateItems().isEmpty();
+        return getUpdateItems()==null || getUpdateItems().isEmpty();
     }
 
     public JSONObject toJSON(){
@@ -68,7 +64,7 @@ public class RoselUpdateInfo {
     }
 
     public static RoselUpdateInfo fromJSONString(String jsonString) throws ParseException {
-        RoselUpdateInfo updateInfo = null;
+        RoselUpdateInfo updateInfo;
         JSONParser parser = new JSONParser();
         JSONObject jsonObj = (JSONObject) parser.parse(jsonString);
         updateInfo = new RoselUpdateInfo((String) jsonObj.get("table"),(long) jsonObj.get("version"),(long) jsonObj.get("amount"));

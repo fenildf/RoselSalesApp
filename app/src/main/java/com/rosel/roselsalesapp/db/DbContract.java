@@ -129,7 +129,7 @@ public final class DbContract {
         public static final String SQL_CREATE_STATEMENT = "CREATE TABLE " + TABLE_NAME +
                 " (" + COLUMN_NAME_TABLE_NAME + " TEXT NOT NULL PRIMARY KEY, " +
                 COLUMN_NAME_VERSION + " INTEGER);";
-        public static final String getInsertQuery(String tableName, long version){
+        public static String getInsertQuery(String tableName, long version){
             return "INSERT INTO " + TABLE_NAME + " (" + COLUMN_NAME_TABLE_NAME + ", " + COLUMN_NAME_VERSION + ") VALUES ( '" + tableName + "', " + version + " )";
         }
     }

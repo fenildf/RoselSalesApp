@@ -151,14 +151,6 @@ public class Order implements Serializable{
         return new SimpleDateFormat("dd.MM.yyyy").format(date.getTime());
     }
 
-    public int isSentForSQL(){
-        if(isSent) {
-            return 1;
-        }else{
-            return 0;
-        }
-    }
-
     public static String getDateForSQL(Calendar dateToConvert){
         if(dateToConvert==null){
             return null;

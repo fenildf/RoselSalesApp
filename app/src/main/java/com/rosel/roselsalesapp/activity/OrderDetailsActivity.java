@@ -441,7 +441,7 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
             setReadOnly(addressText, true);
             setReadOnly(shipDateTextView, true);
         }
-    };
+    }
 
     private void updateOrderViews(){
         /*int butVisibility;
@@ -458,10 +458,9 @@ public class OrderDetailsActivity extends ActionBarActivity implements DatePicke
         } else {
             title = getString(R.string.new_order_title);
         }
-        try{
+
+        if(getActionBar()!=null){
             getActionBar().setTitle(title);
-        } catch(Exception e){
-            Log.e(getClass().getName(), e.getMessage());
         }
 
         commentText.setText(order.getComment());

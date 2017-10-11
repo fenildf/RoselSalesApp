@@ -468,7 +468,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
             if(serverResponseString==null){
                 return RESULT_CODE_SYNC_ERROR;
             }
-            RoselUpdateInfo serverUpdateInfo = null;
+            RoselUpdateInfo serverUpdateInfo;
             try {
                 serverUpdateInfo = RoselUpdateInfo.fromJSONString(serverResponseString);
             } catch (ParseException e) {
@@ -531,7 +531,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                             contentValues.put(iv.name, Float.valueOf(iv.value));
                             break;
                         default:
-                            contentValues.put(iv.name, iv.value.toString());
+                            contentValues.put(iv.name, iv.value);
                             break;
                     }
                 }

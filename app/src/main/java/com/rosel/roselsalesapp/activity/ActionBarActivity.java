@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.MenuItem;
 
 /**
@@ -13,7 +14,10 @@ import android.view.MenuItem;
 public class ActionBarActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+
+        if(getActionBar()!=null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         super.onCreate(savedInstanceState);
     }
 
