@@ -28,14 +28,14 @@
         <Preference android:title="@string/pref_information_title">
         <intent
             android:targetPackage="com.rosel.roselsalesapp"
-            android:targetClass="com.rosel.roselsalesapp.InformationActivity"/>
+            android:targetClass="com.rosel.roselsalesapp.activity.InformationActivity"/>
     </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/database">
         <Preference android:title="@string/database_settings">
         <intent
             android:targetPackage="com.rosel.roselsalesapp"
-            android:targetClass="com.rosel.roselsalesapp.DatabaseActivity"/>
+            android:targetClass="com.rosel.roselsalesapp.activity.DatabaseActivity"/>
         </Preference>
     </PreferenceCategory>
 </PreferenceScreen>
