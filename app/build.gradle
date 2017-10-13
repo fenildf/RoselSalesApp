@@ -26,18 +26,18 @@ dependencies {
 }
 
 
-//task deployApks(type:Copy) {
-//    description = "Copies APKs to the deploy directory"
-//    from 'build/outputs/apk'
-//    include '**/*.apk'
-//    into '//files/utils/forMobileOrdersSystem/mobileClient'
-//}
-//
-//afterEvaluate { project ->
-//    project.tasks.assembleDebug << {
-//        tasks.deployApks.execute()
-//    }
-//}
+task deployApks(type:Copy) {
+    description = "Copies APKs to the deploy directory"
+    from 'build/outputs/apk'
+    include '**/*.apk'
+    into '//files/utils/forMobileOrdersSystem/mobileClient'
+}
+
+afterEvaluate { project ->
+    project.tasks.assembleDebug << {
+        tasks.deployApks.execute()
+    }
+}
 
 
 
