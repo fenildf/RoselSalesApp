@@ -150,7 +150,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                             if (ordersList.isEmpty()){
                                 return RESULT_CODE_NO_ORDERS_TO_SEND;
                             }
-                            for(Order curOrder:getOrdersUpdates()){
+                            for(Order curOrder:ordersList){
                                 writer.println(curOrder.toJSONObject().toJSONString());
                             }
                             writer.println(TransportProtocol.COMMIT);
