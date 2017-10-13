@@ -90,5 +90,6 @@
     <string name="ship_date">Ship date:</string>
     <string name="delete_this_row">Delete this row?</string>
     <string name="choose_date">choose date</string>
+    <string name="no_orders_to_send">No orders to send</string>
 
 </resources>

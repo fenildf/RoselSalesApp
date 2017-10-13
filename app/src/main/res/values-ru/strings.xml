@@ -82,5 +82,6 @@
     <string name="delete_this_row">Удалить строку?</string>
     <string name="ship_date">Дата доставки:</string>
     <string name="choose_date">выбрать дату</string>
+    <string name="no_orders_to_send">Нет заказов к отправке</string>
 
 </resources>

@@ -83,6 +83,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
         private static final int RESULT_CODE_SYNC_ERROR = 1;
         private static final int RESULT_CODE_NO_NETWORK = 2;
         private static final int RESULT_CODE_SERVER_REJECT_DEVICE = 4;
+        private static final int RESULT_CODE_NO_ORDERS_TO_SEND = 5;
 
         Socket socket = null;
         SQLiteDatabase db = null;
@@ -145,6 +146,10 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                         case TransportProtocol.NOT_REG:
                             return RESULT_CODE_SERVER_REJECT_DEVICE;
                         case TransportProtocol.START_POST:
+                            ArrayList<Order> ordersList = getOrdersUpdates();
+                            if (ordersList.isEmpty()){
+                                return RESULT_CODE_NO_ORDERS_TO_SEND;
+                            }
                             for(Order curOrder:getOrdersUpdates()){
                                 writer.println(curOrder.toJSONObject().toJSONString());
                             }
@@ -242,6 +247,9 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     break;
                 case RESULT_CODE_SERVER_REJECT_DEVICE:
                     Toast.makeText(SyncActivity.this, R.string.device_not_reg_on_server, Toast.LENGTH_SHORT).show();
+                    break;
+                case RESULT_CODE_NO_ORDERS_TO_SEND:
+                    Toast.makeText(SyncActivity.this, R.string.no_orders_to_send, Toast.LENGTH_SHORT).show();
                     break;
             }
 
