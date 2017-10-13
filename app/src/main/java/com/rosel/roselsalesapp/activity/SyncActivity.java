@@ -387,7 +387,7 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                     }
 
                 } catch (Exception e) {
-                    Log.e(getString(R.string.update_log), e.getMessage());
+                    Log.e(getString(R.string.update_log), e.getMessage(), e);
                     return RESULT_CODE_SYNC_ERROR;
                 } finally{
                     if(writer!=null) {
@@ -475,31 +475,34 @@ public class SyncActivity extends ActionBarActivity implements AdapterView.OnIte
                 Log.e(getString(R.string.update_log),e.getMessage());
                 return RESULT_CODE_SYNC_ERROR;
             }
-            for(int i=0;i<serverUpdateInfo.getAmount();i++){
-                serverResponseString = reader.readLine(); //contains RoselUpdateInfo in JSON
-                if(serverResponseString==null){
-                    return RESULT_CODE_SYNC_ERROR;
+            if(serverUpdateInfo.getAmount() > 0) {
+                for (int i = 0; i < serverUpdateInfo.getAmount(); i++) {
+                    serverResponseString = reader.readLine(); //contains RoselUpdateInfo in JSON
+                    if (serverResponseString == null) {
+                        return RESULT_CODE_SYNC_ERROR;
+                    }
+                    serverUpdateInfo.addUpdateItem(updateItemFactory.fillFromJSONString(serverResponseString));
+                    mPublishProgress(Math.round(i * 50 / serverUpdateInfo.getAmount()));
                 }
-                serverUpdateInfo.addUpdateItem(updateItemFactory.fillFromJSONString(serverResponseString));
-            }
 
-            int i = 0;
-            try {
-                db.beginTransaction();
-                for (RoselUpdateItem updateItem : serverUpdateInfo.getUpdateItems()) {
-                    db.insertWithOnConflict(serverUpdateInfo.getTable(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
-                    mPublishProgress(Math.round(i++ * 100 / serverUpdateInfo.getAmount()));
-                }
-                ContentValues newTableVersionContentValues = new ContentValues();
-                newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, serverUpdateInfo.getVersion());
-                db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{serverUpdateInfo.getTable()});
-                db.setTransactionSuccessful();
-            } catch (Exception e) {
-                Log.e(getString(R.string.socket_log), e.getMessage());
-                return RESULT_CODE_DB_UPDATE_ERROR;
-            } finally {
-                if (db != null && db.inTransaction()) {
-                    db.endTransaction();
+                int i = 0;
+                try {
+                    db.beginTransaction();
+                    for (RoselUpdateItem updateItem : serverUpdateInfo.getUpdateItems()) {
+                        db.insertWithOnConflict(serverUpdateInfo.getTable(), null, createContentValues(updateItem), SQLiteDatabase.CONFLICT_REPLACE);
+                        mPublishProgress(Math.round(i++ * 50 / serverUpdateInfo.getAmount()) + 50);
+                    }
+                    ContentValues newTableVersionContentValues = new ContentValues();
+                    newTableVersionContentValues.put(DbContract.Versions.COLUMN_NAME_VERSION, serverUpdateInfo.getVersion());
+                    db.update(DbContract.Versions.TABLE_NAME, newTableVersionContentValues, DbContract.Versions.COLUMN_NAME_TABLE_NAME + " = ?", new String[]{serverUpdateInfo.getTable()});
+                    db.setTransactionSuccessful();
+                } catch (Exception e) {
+                    Log.e(getString(R.string.socket_log), e.getMessage());
+                    return RESULT_CODE_DB_UPDATE_ERROR;
+                } finally {
+                    if (db != null && db.inTransaction()) {
+                        db.endTransaction();
+                    }
                 }
             }
             return RESULT_CODE_SUCCESS;
